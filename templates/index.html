@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drag and Drop Icons</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        #icon-container {
+            margin: 20px;
+            display: flex;
+            justify-content: space-between;
+            width: 250px;
+        }
+
+        .icon {
+            width: 50px;
+            height: 50px;
+            cursor: grab;
+        }
+
+        #container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            border: 2px dashed #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #drop-area {
+            width: 100px;
+            height: 100px;
+            background-color: #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Original Icon Containers -->
+    <div id="icon-container">
+        <img src="https://cdn-icons-png.flaticon.com/512/25/25694.png" id="draggable-icon-1" class="icon" draggable="true">
+        <img src="static/images/fav.png" id="draggable-icon-2" class="icon" draggable="true">
+    </div>
+
+    <!-- Drop Area -->
+    <div id="container">
+        <div id="drop-area">Drop Here</div>
+    </div>
+
+    <script>
+        const icons = document.querySelectorAll('.icon');
+        const dropArea = document.getElementById("drop-area");
+
+        icons.forEach((icon) => {
+            icon.addEventListener("dragstart", (event) => {
+                event.dataTransfer.setData("text/plain", event.target.id);
+            });
+        });
+
+        dropArea.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            dropArea.style.backgroundColor = "#c0ffc0";
+        });
+
+        dropArea.addEventListener("dragleave", () => {
+            dropArea.style.backgroundColor = "#ddd";
+        });
+
+        dropArea.addEventListener("drop", (event) => {
+            event.preventDefault();
+            dropArea.style.backgroundColor = "#ddd";
+
+            const iconId = event.dataTransfer.getData("text/plain");
+            const draggedIcon = document.getElementById(iconId);
+
+            // Clone the icon so it appears in both places
+            const newIcon = draggedIcon.cloneNode(true);
+            newIcon.style.position = "relative";
+            newIcon.style.cursor = "default";  // Disable dragging of cloned icon
+            dropArea.innerHTML = ""; // Clear drop area
+            dropArea.appendChild(newIcon);
+
+            // Make the new icon draggable to allow it to be dragged out
+            newIcon.setAttribute("draggable", true);
+
+            newIcon.addEventListener("dragstart", (event) => {
+                event.dataTransfer.setData("text/plain", event.target.id);
+            });
+
+            // Handle dragging the icon out of the drop area to remove it
+            newIcon.addEventListener("dragend", (event) => {
+                const rect = dropArea.getBoundingClientRect();
+                const iconRect = newIcon.getBoundingClientRect();
+
+                // Check if the icon was dragged out of the drop area
+                if (
+                    iconRect.top < rect.top ||
+                    iconRect.left < rect.left ||
+                    iconRect.bottom > rect.bottom ||
+                    iconRect.right > rect.right
+                ) {
+                    dropArea.removeChild(newIcon); // Remove the icon if dragged out
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
