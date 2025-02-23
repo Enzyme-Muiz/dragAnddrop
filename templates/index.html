@@ -30,7 +30,7 @@
 
         #container {
             position: relative;
-            width: 400px;
+            width: 80vw;
             height: 400px;
             border: 2px dashed #000;
             display: flex;
@@ -46,6 +46,7 @@
             justify-content: center;
             align-items: center;
             border-radius: 50%;
+            position: relative;
         }
     </style>
 </head>
@@ -65,59 +66,63 @@
     <script>
         const icons = document.querySelectorAll('.icon');
         const dropArea = document.getElementById("drop-area");
-
+            
+        // Handle drag start for original icons
         icons.forEach((icon) => {
             icon.addEventListener("dragstart", (event) => {
-                event.dataTransfer.setData("text/plain", event.target.id);
+                event.dataTransfer.setData("iconID", event.target.id);
             });
         });
-
+        
         dropArea.addEventListener("dragover", (event) => {
             event.preventDefault();
             dropArea.style.backgroundColor = "#c0ffc0";
         });
-
+        
         dropArea.addEventListener("dragleave", () => {
             dropArea.style.backgroundColor = "#ddd";
         });
-
+        
         dropArea.addEventListener("drop", (event) => {
             event.preventDefault();
             dropArea.style.backgroundColor = "#ddd";
-
-            const iconId = event.dataTransfer.getData("text/plain");
-            const draggedIcon = document.getElementById(iconId);
-
-            // Clone the icon so it appears in both places
+        
+            const iconID = event.dataTransfer.getData("iconID");
+            const draggedIcon = document.getElementById(iconID);
+        
+            // if (!draggedIcon) return;
+        
+            // Clone the dragged icon
             const newIcon = draggedIcon.cloneNode(true);
+            newIcon.removeAttribute("id"); // Remove ID to avoid duplication
             newIcon.style.position = "relative";
-            newIcon.style.cursor = "default";  // Disable dragging of cloned icon
-            dropArea.innerHTML = ""; // Clear drop area
-            dropArea.appendChild(newIcon);
-
-            // Make the new icon draggable to allow it to be dragged out
+            newIcon.style.cursor = "grab";
             newIcon.setAttribute("draggable", true);
-
+        
+            // Clear previous content and add the new icon
+            dropArea.innerHTML = "";
+            dropArea.appendChild(newIcon);
+        
+            // Make the cloned icon draggable
             newIcon.addEventListener("dragstart", (event) => {
-                event.dataTransfer.setData("text/plain", event.target.id);
+                event.dataTransfer.setData("iconID", "cloned-icon");
             });
-
-            // Handle dragging the icon out of the drop area to remove it
-            newIcon.addEventListener("dragend", (event) => {
+        
+            // Detect when dragged outside the drop area and remove the icon
+            document.addEventListener("dragover", (event) => {
                 const rect = dropArea.getBoundingClientRect();
-                const iconRect = newIcon.getBoundingClientRect();
-
-                // Check if the icon was dragged out of the drop area
                 if (
-                    iconRect.top < rect.top ||
-                    iconRect.left < rect.left ||
-                    iconRect.bottom > rect.bottom ||
-                    iconRect.right > rect.right
+                    event.clientX < rect.left ||
+                    event.clientX > rect.right ||
+                    event.clientY < rect.top ||
+                    event.clientY > rect.bottom
                 ) {
-                    dropArea.removeChild(newIcon); // Remove the icon if dragged out
+                    newIcon.remove(); // Remove icon if dragged out
+                    dropArea.innerHTML = "Drop Here"; // Reset drop area text
                 }
             });
         });
+        
     </script>
 
 </body>
